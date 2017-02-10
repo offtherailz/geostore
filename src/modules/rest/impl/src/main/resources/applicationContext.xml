@@ -27,7 +27,6 @@
 	<import resource="classpath:META-INF/cxf/cxf.xml" />
 	<import resource="classpath*:META-INF/cxf/cxf-*.xml" />
 	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
-	<import resource="classpath:META-INF/cxf/cxf-extension-jaxrs-binding.xml" />
 
 	<!-- === SEC ======================================================== -->
 	<import resource="classpath*:geostore-spring-security.xml" />
@@ -205,12 +204,29 @@
 			</bean>
 		</jaxrs:inInterceptors> 
 	</jaxrs:server> -->
-
+	<!-- implements OAuthDataProvider see http://cxf.apache.org/docs/jax-rs-oauth2.html-->
+	<bean id="oauthProvider" class="it.geosolutions.geostore.services.rest.security.OauthDataProvider"/>
+	<!-- <bean id="authorizationService" class="org.apache.cxf.rs.security.oauth2.services.AuthorizationCodeGrantService"> 
+	  <property name="dataProvider" ref="oauthProvider"/>
+	</bean> -->
+	<bean id="accessTokenService" class="org.apache.cxf.rs.security.oauth2.services.AccessTokenService">
+		<property name="dataProvider" ref="oauthProvider"/>
+	</bean>
+	<bean id="accessTokenValidateService" class="org.apache.cxf.rs.security.oauth2.services.AccessTokenValidatorService">
+		<property name="dataProvider" ref="oauthProvider"/>
+	</bean>
+	 
+	<jaxrs:server id="oauthServer" address="/oauth">
+	   <jaxrs:serviceBeans>
+	           <ref bean="accessTokenService"/>
+     			<ref bean="accessTokenValidateService"/>
+	  </jaxrs:serviceBeans>
+	</jaxrs:server>
 	<!-- ==================================================================== -->
 	<!-- === CXF Providers ================================================== -->
 	<!-- ==================================================================== -->
 	<bean id="jaxbXmlProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider" />
-	<bean id="jsonProvider" class="org.apache.cxf.jaxrs.provider.JSONProvider" />
+	<bean id="jsonProvider" class="org.apache.cxf.jaxrs.provider.json.JSONProvider" />
 	<bean id="jaxbContextResolver"
 		class="it.geosolutions.geostore.services.rest.utils.JAXBContextResolver" />
 
