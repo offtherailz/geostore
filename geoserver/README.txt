@@ -4,7 +4,10 @@ The following files allow to bind geostore user groups and roles with GeoServer.
 Binding GeoStore and GeoServer users
 ====================================
 
-Create the empty GeoStore database using scripts (add ëenabledí column as in the scripts for users and groups. Only the public schema is supported. Configure GeoStore to use the database and let him create the users.
+Create the empty GeoStore database using scripts as described in GeoStore WIKI 
+(https://github.com/geosolutions-it/geostore/wiki/Building-instructions#building-geostore-with-postgres-support).
+In order to intergrate GeoServer with GeoStore's users you need GeoStore v1.2.
+For the old GeoStore DBs migration's scripts must be used, you can find these scripts at your-path/geostore/doc/sql/migration directory.
 
 GeoServer Settings
 ==================
@@ -23,8 +26,10 @@ Setup User Group
     * Password encryption : Digest
     * password policy default 
     * Driver org.postgresql (or JNDI)
-    * connection url jdbc:postgresql://localhost:5432/geostore (or the one for you
-    * set username and password for the db
+    * connection url jdbc:postgresql://localhost:5432/geostore (or the one for your setup)
+    * JNDI only: the JNDI resource name should look like this java:comp/env/jdbc/geostore
+    * set username and password for the db (user 'geostore' with password 'geostore')
+	* Save
     * set DDL and DML file urls.
         To do This you can save, and place the provided files in the created directory under <gs_datadir>/security/usergroup/geostore . Then go back to geostore user group service and save again.
 
@@ -34,26 +39,26 @@ Setup Role Service
     * select JDBC
     * name geostore
     * db org.postgresql
-    * connection url: jdbc:postgresql://localhost:5432/geostore (same as above) 
-    * set user and password
+    * connection url: jdbc:postgresql://localhost:5432/geostore (or JNDI, same as above) 
+    * set user and password (user 'geostore' with password 'geostore')
     * save, add the provided files to the geostore directory under /<gs_datadir>/security/role/geostore and save again
-    * Go Again in JDBC Role Service GeoStore and select Administrator role to ADMIN and Group Administrator Role to ADMIN 
+    * Go Again in JDBC Role Service 'geostore' and select Administrator role to ADMIN and Group Administrator Role to ADMIN 
     
 Use these services as default
 =============================
-    * Go To Security Settings and set Active role service to ìgeostoreî
+    * Go To Security Settings and set the 'Active role service' to ‚Äúgeostore‚Äù
     * Go to Authentication Section, scroll to Authentication Providers and Add a new one.
-    * select Username Password 
-    * name it ìgeostoreî
-    * select ìgeostoreî from the select box
-    * save
+    * select 'Username Password' 
+    * name it ‚Äúgeostore‚Äù
+    * select ‚Äúgeostore‚Äù from the select box
+    * Save.
     * Go to Provider chain and move geostore in the right list, on top 
     * save
 
 
 Use symmetric Encoding
 ======================
-The default crittografy will use a ìdigestî. If you want to  use simmetric password encoding you have to set up properly geostore and geoserver
+The default crittografy will use a ‚Äúdigest‚Äù. If you want to  use simmetric password encoding you have to set up properly geostore and geoserver
     * configure geoserver usergroup to use weakPBE password encryption (or strong,not thested on geostore) 
     * delete all users from gs_users table (user and admin)
     * edit geostore.properties and set it to passwordEncoder=pbePasswordEncoder
@@ -63,10 +68,16 @@ The default crittografy will use a ìdigestî. If you want to  use simmetric passw
     
 Use the auth key Module for with GeoStore/GeoServer
 ===================================================
-    * install auth key module in GeoServer. 
-    * go to authentication page and click on authkey module.
-    * Sync with user properties (select geostore),leave authkey as parameter name.
-    * (Sync keys to create them)
-    * go in the authentication page and open default filter chain.
-    * add auth key and put it on top, and save.
+    * Install the auth key module in GeoServer. 
+    * Go to the authentication page and scroll into the 'Authentication Filters' section
+	* Click 'Add new'.
+	* Inside the 'New authentication Filter' page click on authkey module.
+	* Insert the name (i.e. 'geostore').
+	* Leave authkey as parameter name.
+	* Select the 'User Property' as 'Authentication key user mapper'.
+	* Select the created geostore's 'User/Group Service'.
+	* Click on 'Syncronize user/group service'.
+	* Save.
+    * Go into the authentication page and open default filter chain.
+    * Add 'geostore' into the 'Selected' filters and put it on top, and save.
 
