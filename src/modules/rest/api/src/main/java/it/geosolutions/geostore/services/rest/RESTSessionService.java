@@ -104,6 +104,19 @@ public interface RESTSessionService {
     @Produces({MediaType.APPLICATION_JSON})
     @Secured({ "ROLE_ADMIN", "ROLE_USER" })
     public SessionToken login(@Context SecurityContext sc) throws ParseException;
+    
+	/**
+     * Creates a new session for the User in SecurityContext.
+     * 
+     * @return
+     * @throws ParseException 
+     */
+    
+    @POST
+    @Path("/refresh/{sessionId}/{refreshToken}")
+    @Produces({MediaType.APPLICATION_JSON})
+    @Secured({ "ROLE_ADMIN", "ROLE_USER" })
+    public SessionToken refresh(@Context SecurityContext sc, @PathParam("sessionId") String sessionId, @PathParam("refreshToken") String refreshToken)  throws ParseException;
     /**
      * Removes the given session.
      * 

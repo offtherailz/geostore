@@ -11,7 +11,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class SessionToken {
 	String token_type;
 	String access_token;
+	String refresh_token;
+	
 	Integer expires; 
+	
 	
 	public String getToken_type() {
 		return token_type;
@@ -30,5 +33,15 @@ public class SessionToken {
 	}
 	public void setExpires(Integer expires) {
 		this.expires = expires;
+	}
+	public void setRefresh_Token(String refreshToken) {
+		// TODO Auto-generated method stub
+		
+	}
+	public String getRefresh_token() {
+		return refresh_token;
+	}
+	public void setRefresh_token(String refresh_token) {
+		this.refresh_token = refresh_token;
 	}
 }

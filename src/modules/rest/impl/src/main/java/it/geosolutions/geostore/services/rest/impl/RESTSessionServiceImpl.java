@@ -49,7 +49,16 @@ import it.geosolutions.geostore.services.rest.model.SessionToken;
 public class RESTSessionServiceImpl extends RESTServiceImpl implements RESTSessionService{
 	@Autowired
 	UserSessionService userSessionService;
+	private boolean autorefresh = false;
 	
+	public boolean isAutorefresh() {
+		return autorefresh;
+	}
+
+	public void setAutorefresh(boolean autorefresh) {
+		this.autorefresh = autorefresh;
+	}
+
 	private int sessionTimeout = 86400; // 1 day
 
 	public UserSessionService getUserSessionService() {
@@ -70,8 +79,8 @@ public class RESTSessionServiceImpl extends RESTServiceImpl implements RESTSessi
 	 */
 	public User getUser(String sessionId, boolean refresh) {
 		User details = userSessionService.getUserData(sessionId);
-		if (details != null && refresh) {
-			userSessionService.refreshSession(sessionId);
+		if (details != null && refresh && autorefresh) {
+			userSessionService.refreshSession(sessionId, userSessionService.getRefreshToken(sessionId));
 		}
 		return details;
 	}
@@ -85,8 +94,8 @@ public class RESTSessionServiceImpl extends RESTServiceImpl implements RESTSessi
 	public String getUserName(String sessionId, boolean refresh) {
 		User userData = userSessionService.getUserData(sessionId);
 		if (userData != null) {
-			if (refresh) {
-				userSessionService.refreshSession(sessionId);
+			if (refresh  && autorefresh) {
+				userSessionService.refreshSession(sessionId, userSessionService.getRefreshToken(sessionId));
 			}
 			return userData.getName();
 		}
@@ -131,16 +140,25 @@ public class RESTSessionServiceImpl extends RESTServiceImpl implements RESTSessi
 			if (user instanceof User) {
 				session = new UserSessionImpl(null, user, expires);
 			}
-			String accessToken = userSessionService.registerNewSession(session);
-			SessionToken token = new SessionToken();
-			token.setAccess_token(accessToken);
-			token.setExpires(getSessionTimeout());
-			token.setToken_type("Bearer");
-			return token;
+			return toSessionToken(userSessionService.registerNewSession(session), session);
 		}
 		return null;
 	}
 
+	private SessionToken toSessionToken(String accessToken, UserSession sessionToken) {
+		SessionToken token = new SessionToken();
+		token.setAccess_token(accessToken);
+		token.setRefresh_Token(sessionToken.getRefreshToken());
+		token.setExpires(getSessionTimeout());
+		token.setToken_type("Bearer");
+		return token;
+	}
+
+	@Override
+	public SessionToken refresh(SecurityContext sc, String sessionId, String refreshToken) {
+		return toSessionToken(sessionId, userSessionService.refreshSession(sessionId, refreshToken));
+
+	}
 
 	/**
 	 * Removes the given session.
@@ -181,7 +199,7 @@ public class RESTSessionServiceImpl extends RESTServiceImpl implements RESTSessi
 		return calendar;
 	}
 
-
+	
 	@Override
 	protected SecurityService getSecurityService() {
 		return null;
