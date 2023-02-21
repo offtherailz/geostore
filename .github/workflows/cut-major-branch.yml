@@ -33,16 +33,19 @@ jobs:
           echo "creating branch is $BRANCH_NAME"
           git checkout -b "$BRANCH_NAME"
           git push --set-upstream origin "$BRANCH_NAME"
+          echo "branch created"
+          echo "creating bump changes"
           git checkout master
-          mvn release:update-versions -DautoVersionSubmodules=true -DdevelopmentVersion=${NEXT}-SNAPSHOT # sets the internal verison
-          mvn versions:set-property -Dproperty=geostore-version -DnewVersion=${NEXT}-SNAPSHOT # sets geostore-version property
-          git checkout -b "bump-${NEXT}"
+          mvn release:update-versions -B -DautoVersionSubmodules=true -DdevelopmentVersion=${NEXT}-SNAPSHOT # sets the internal verison
+          mvn versions:set-property -B -Dproperty=geostore-version -DnewVersion=${NEXT}-SNAPSHOT # sets geostore-version property
+          git checkout -b "bump-${NEXT}-${{ github.run_id }}"
           git add pom.xml
           git add "**/pom.xml"
           git commit -m "Update to ${NEXT}"
           git push origin "bump-${NEXT}"
-          gh pr create -B master -H "bump-${NEXT}" --title "Update ${CUR}" --body 'Bumps version to 1.2'
-          gh pr merge --auto --delete-branch
+          pr_url=$(gh pr create -B master -H "bump-${NEXT}-${{ github.run_id }}" --title "[github-action] Bump Master to ${NEXT}" --body 'This automatic pull request bumps version of master branch to ${NEXT}')
+          sleep 10
+          gh pr merge --auto --delete-branch -r "$pr_url"
                
 
 
