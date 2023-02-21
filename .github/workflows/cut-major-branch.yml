@@ -32,8 +32,9 @@ jobs:
         run: |
           # script will go here
           echo "Initializing git"
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          # Optional
+          # git config user.name github-actions
+          # git config user.email github-actions@github.com
           BRANCH_NAME="${CURR}.x"
           echo "creating branch is $BRANCH_NAME"
           git checkout -b "$BRANCH_NAME"
@@ -51,7 +52,7 @@ jobs:
           git push origin "${pr_branch_name}"
           pr_url=$(gh pr create -B "${MAIN_BRANCH}" -H "${pr_branch_name}" --title "[github-action] Bump version to ${NEXT}" --body "This automatic pull request bumps version of ${MAIN_BRANCH} branch to ${NEXT}")
           sleep 10
-          gh pr merge --auto --delete-branch -r "$pr_url"
+          gh pr merge --auto --delete-branch -r "$pr_url" --squash
                
 
 
