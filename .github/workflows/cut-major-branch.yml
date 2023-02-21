@@ -42,8 +42,8 @@ jobs:
           echo "branch created"
           echo "creating bump changes"
           git checkout "$MAIN_BRANCH"
-          mvn release:update-versions -B -DautoVersionSubmodules=true -DdevelopmentVersion=${NEXT}-SNAPSHOT # sets the internal verison
-          mvn versions:set-property -B -Dproperty=geostore-version -DnewVersion=${NEXT}-SNAPSHOT # sets geostore-version property
+          mvn -q -B release:update-versions -DautoVersionSubmodules=true -DdevelopmentVersion=${NEXT}-SNAPSHOT # sets the internal verison
+          mvn -q -B versions:set-property -B -Dproperty=geostore-version -DnewVersion=${NEXT}-SNAPSHOT # sets geostore-version property
           pr_branch_name="bump-${NEXT}-${RUN_ID}"
           echo "Creating a temp PR on branch: ${pr_branch_name}"
           git checkout -b "${pr_branch_name}"
