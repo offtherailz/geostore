@@ -1,4 +1,4 @@
-name: Cut Release
+name: Cut Release Branch
 on:
   workflow_dispatch:
     inputs:
@@ -8,9 +8,12 @@ on:
       next-version: 
         description: Next version (e.g. 2.2). 
         required: true
+      main-branch: 
+        description: main branch
+        default: master
 jobs:
   cut-release:
-    name: Create release branch and PRs into main (master)
+    name: Create release branch and PRs into main main branch
     runs-on: ubuntu-latest
     steps:
 
@@ -24,6 +27,8 @@ jobs:
           CURR: ${{ github.event.inputs.current-version }}
           NEXT: ${{ github.event.inputs.next-version }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAIN_BRANCH: ${{  github.event.inputs.main-branch }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           # script will go here
           echo "Initializing git"
@@ -35,15 +40,16 @@ jobs:
           git push --set-upstream origin "$BRANCH_NAME"
           echo "branch created"
           echo "creating bump changes"
-          git checkout master
+          git checkout "$MAIN_BRANCH"
           mvn release:update-versions -B -DautoVersionSubmodules=true -DdevelopmentVersion=${NEXT}-SNAPSHOT # sets the internal verison
           mvn versions:set-property -B -Dproperty=geostore-version -DnewVersion=${NEXT}-SNAPSHOT # sets geostore-version property
-          git checkout -b "bump-${NEXT}-${{ github.run_id }}"
+          pr_branch_name="bump-${NEXT}-${RUN_ID}"
+          git checkout -b "${pr_branch_name}"
           git add pom.xml
           git add "**/pom.xml"
           git commit -m "Update to ${NEXT}"
-          git push origin "bump-${NEXT}"
-          pr_url=$(gh pr create -B master -H "bump-${NEXT}-${{ github.run_id }}" --title "[github-action] Bump Master to ${NEXT}" --body 'This automatic pull request bumps version of master branch to ${NEXT}')
+          git push origin "${pr_branch_name}"
+          pr_url=$(gh pr create -B "${MAIN_BRANCH}" -H "${pr_branch_name}" --title "[github-action] Bump version to ${NEXT}" --body "This automatic pull request bumps version of ${MAIN_BRANCH} branch to ${NEXT}")
           sleep 10
           gh pr merge --auto --delete-branch -r "$pr_url"
                
