@@ -33,8 +33,8 @@ jobs:
           # script will go here
           echo "Initializing git"
           # Optional
-          # git config user.name github-actions
-          # git config user.email github-actions@github.com
+          git config user.name github-actions
+          git config user.email github-actions@github.com
           BRANCH_NAME="${CURR}.x"
           echo "creating branch is $BRANCH_NAME"
           git checkout -b "$BRANCH_NAME"
@@ -45,10 +45,11 @@ jobs:
           mvn release:update-versions -B -DautoVersionSubmodules=true -DdevelopmentVersion=${NEXT}-SNAPSHOT # sets the internal verison
           mvn versions:set-property -B -Dproperty=geostore-version -DnewVersion=${NEXT}-SNAPSHOT # sets geostore-version property
           pr_branch_name="bump-${NEXT}-${RUN_ID}"
+          echo "Creating a temp PR on branch: ${pr_branch_name}"
           git checkout -b "${pr_branch_name}"
           git add pom.xml
           git add "**/pom.xml"
-          git commit -m "Update to ${NEXT}"
+          git commit -m "Bump version to ${NEXT}"
           git push origin "${pr_branch_name}"
           pr_url=$(gh pr create -B "${MAIN_BRANCH}" -H "${pr_branch_name}" --title "[github-action] Bump version to ${NEXT}" --body "This automatic pull request bumps version of ${MAIN_BRANCH} branch to ${NEXT}")
           sleep 10
