@@ -46,8 +46,7 @@ jobs:
         git config user.email github-actions@github.com
         
         # Commit changes
-        git add pom.xml
-        git add "**/pom.xml"
+        find . -name 'pom.xml' | xargs git add
         git commit -m "Version Release ${{ inputs.version }}"
         git tag v${{ inputs.version }} # create tag
         git push origin ${{ github.ref_name }} --tags
@@ -118,8 +117,7 @@ jobs:
         mvn versions:set-property -Dproperty=geostore-version -DnewVersion=${{ inputs.base }}-SNAPSHOT # set geostore-version property
 
         mvn versions:use-releases # check to not use SNAPSHOTs
-        git add pom.xml
-        git add "**/pom.xml"
+        find . -name 'pom.xml' | xargs git add
         git commit -m "Restore snapshots from ${{ inputs.version }} to ${{ inputs.base }}-SNAPSHOT"
         git tag ${VERSION} # create tag
         git push origin ${{ github.ref_name }}
