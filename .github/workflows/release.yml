@@ -31,8 +31,15 @@ jobs:
         # fix versions to ${{ inputs.version }}
         mvn versions:set -DnewVersion=${{ inputs.version }} -DgenerateBackupPoms=false # set versions
         mvn versions:set-property -Dproperty=geostore-version -DnewVersion=${{ inputs.version }} # set geostore-version property
-
         mvn versions:use-releases # check to not use SNAPSHOTs
+
+        # script will go here
+        echo "Initializing git"
+        # Optional
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        
+        # Commit changes
         git add pom.xml
         git add "**/pom.xml"
         git commit -m "Version Release ${{ inputs.version }}"
