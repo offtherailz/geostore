@@ -106,6 +106,14 @@ public class CompositeOpenIdConnectFilter extends GenericFilterBean
 
         Map<String, OpenIdConnectConfiguration> configs =
                 applicationContext.getBeansOfType(OpenIdConnectConfiguration.class);
+
+        // Single cache instance shared by every provider filter. The session service delegates
+        // resolve tokens through the "oAuth2Cache" bean (a name that can only hold one instance),
+        // so a cache per provider would leave every provider but one unable to resolve its own
+        // tokens: authkey lookups (GeoServer) and session endpoints would return no user.
+        // Entries are keyed by token value, so providers cannot collide.
+        TokenAuthenticationCache sharedCache = null;
+
         for (Map.Entry<String, OpenIdConnectConfiguration> entry : configs.entrySet()) {
             OpenIdConnectConfiguration config = entry.getValue();
             String beanName = entry.getKey();
@@ -133,9 +141,13 @@ public class CompositeOpenIdConnectFilter extends GenericFilterBean
                     OpenIdConnectRestTemplateFactory.create(
                             config, new DefaultAccessTokenRequest());
 
-            TokenAuthenticationCache cache =
-                    new TokenAuthenticationCache(
-                            config.getCacheSize(), config.getCacheExpirationMinutes());
+            // Sized after the first enabled provider.
+            if (sharedCache == null) {
+                sharedCache =
+                        new TokenAuthenticationCache(
+                                config.getCacheSize(), config.getCacheExpirationMinutes());
+            }
+            TokenAuthenticationCache cache = sharedCache;
 
             JwksRsaKeyProvider jwksKeyProvider = null;
             String jwksUri = config.getIdTokenUri();
